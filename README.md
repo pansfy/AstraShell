@@ -22,6 +22,10 @@ PowerShell 工具集，用 PowerShell 让你的工作更智能。
 
   - PyCharm 开发环境检测安装
 
+- JMeter 环境一键部署：`jmeter-prepare.ps1`
+  - JDK 环境检测安装
+  - JMeter 环境检测安装
+
 ### 运行方式
 
 - 下载部署脚本
@@ -32,8 +36,8 @@ PowerShell 工具集，用 PowerShell 让你的工作更智能。
 
 - 右击文件，选择`使用 PowerShell` 运行
 
-  ![image-20250401143618433](asserts\excute.png)
+  ![](asserts/excute.png)
 
 - 运行效果
 
-  ![image-20250401150531600](asserts\ok.png)
+  ![](asserts/ok.png)
