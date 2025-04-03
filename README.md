@@ -62,3 +62,11 @@ PowerShell 工具集，用 PowerShell 让你的工作更智能。
 > 大家有任何问题或者建议都可以在 issues 中反馈给我，我会慢慢完善这个项目。
 
 **我的邮箱**：pansfy@163.com
+
+### 知识星球
+
+> 加入`AstraShell 社区`答疑解惑，定制专有的 PowerShell 智能脚本。
+
+**现在加入，可获得 [AstraShell通道券](https://t.zsxq.com/X7C6A)，数量有限，先到先得。**
+
+![](asserts/zsxq.png)
