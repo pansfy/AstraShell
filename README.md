@@ -16,15 +16,30 @@ PowerShell 工具集，用 PowerShell 让你的工作更智能。
   - PDF 检测安装
   - 图片查看器 检测安装
 
-- Python 环境一键部署：`python-prepare.ps1`
+- Python 环境一键部署：`python3-prepare.ps1`
 
   - Python 环境检测安装
 
   - PyCharm 开发环境检测安装
 
+- VSCode 环境一键部署：`vscode-prepare.ps1`
+  - VSCode 环境检测安装
+  
+  - VSCode 常用扩展检测安装
+  
 - JMeter 环境一键部署：`jmeter-prepare.ps1`
   - JDK 环境检测安装
   - JMeter 环境检测安装
+
+- Appium 环境一键部署：`appium-prepare.ps1`
+
+  - Node 环境检测安装
+
+  - JDK 环境检测安装
+
+  - Andriod SDK 环境检测安装
+
+  - Python 环境检测安装
 
 ### 运行方式
 
@@ -41,3 +56,9 @@ PowerShell 工具集，用 PowerShell 让你的工作更智能。
 - 运行效果
 
   ![](asserts/ok.png)
+
+### 联系作者
+
+> 大家有任何问题或者建议都可以在 issues 中反馈给我，我会慢慢完善这个项目。
+
+**我的邮箱**：pansfy@163.com
