@@ -40,6 +40,12 @@ PowerShell 工具集，用 PowerShell 让你的工作更智能。
   - Andriod SDK 环境检测安装
 
   - Python 环境检测安装
+- MySQL 环境一键部署：`mysql-prepare.ps1`
+
+  - C++ 运行库环境检测安装
+
+  - MySQL 5.7，MySQL 8.0，MySQL8.4 环境检测安装
+
 
 ### 运行方式
 
@@ -55,7 +61,7 @@ PowerShell 工具集，用 PowerShell 让你的工作更智能。
 
 - 运行效果
 
-  ![](asserts/ok.png)
+  ![](asserts/mysql_install.png)
 
 ### 联系作者
 
