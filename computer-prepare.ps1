@@ -280,7 +280,7 @@ function Test-7ZipInstalled {
 # 安装 7-Zip
 function Install-7ZipSilently {
     $installer = "$env:TEMP\7Zip.exe"
-    $downloadUrl = "https://www.7-zip.org/a/7z2409-x64.exe"
+    $downloadUrl = "https://nchc.dl.sourceforge.net/project/sevenzip/7-Zip/24.09/7z2409-x64.exe"
 
     if (Test-7ZipInstalled) {
         Write-Host "检测到7-Zip解压缩工具已安装，跳过安装步骤。" -ForegroundColor Blue

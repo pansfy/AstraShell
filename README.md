@@ -13,8 +13,10 @@ PowerShell 工具集，用 PowerShell 让你的工作更智能。
   - 微信 检测安装
   - QQ 检测安装
   - WPS Office 检测安装
-  - PDF 检测安装
-  - 图片查看器 检测安装
+  - PDF阅读器 检测安装
+  - 图片查看器BandiView 检测安装
+  - 7-Zip解压缩工具 检测安装
+  - 阿里云盘 检测安装
 
 - Python 环境一键部署：`python3-prepare.ps1`
 
