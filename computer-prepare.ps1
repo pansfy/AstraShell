@@ -14,7 +14,6 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 
 # 检测微信是否已安装
 function Test-WeChatInstalled {
-    # 通过注册表检测（64位和32位路径）
     $regPaths = @(
         "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
         "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
@@ -22,323 +21,337 @@ function Test-WeChatInstalled {
     $installed = Get-ItemProperty $regPaths | Where-Object {
         $_.DisplayName -like "微信"
     }
-    if ($installed) { return $true }
 
-    # 通过文件路径二次验证（默认安装目录）
-    $installPath = "${env:ProgramFiles(x86)}\Tencent\WeChat"
-    if (Test-Path $installPath) { return $true }
+    if ($installed) { return $true }
 
     return $false
 }
 
 # 静默安装微信
 function Install-WeChatSilently {
-    $tempDir = $env:TEMP
-    $installer = "$tempDir\WeChatSetup.exe"
+    $installer = "$env:TEMP\WeChatSetup.exe"
+    $downloadUrl = "https://dldir1.qq.com/weixin/Windows/WeChatSetup.exe"
 
+    if (Test-WeChatInstalled) {
+        Write-Host "检测到 微信 已安装，跳过安装步骤。" -ForegroundColor Blue
+        return
+    }
+
+    Write-Host "检测到 微信 未安装，开始执行静默安装..." -ForegroundColor Yellow
     try {
-        # 下载微信官方安装包（需替换为可靠链接）
         Write-Host "正在下载微信安装程序..." -ForegroundColor Cyan
-        $WXUrl = "https://dldir1.qq.com/weixin/Windows/WeChatSetup.exe"
-        Invoke-WebRequest -Uri $WXUrl -OutFile $installer -UseBasicParsing
+        Invoke-WebRequest -Uri $downloadUrl -OutFile $installer -UseBasicParsing
 
-        # 静默安装（微信默认静默参数为 `/S`）
         Write-Host "正在静默安装微信..." -ForegroundColor Cyan
         Start-Process -FilePath $installer -ArgumentList "/S" -Wait -NoNewWindow
-
-        # 等待安装完成并清理临时文件
-        Start-Sleep -Seconds 5
-        Remove-Item $installer -Force -ErrorAction SilentlyContinue
-    }
-    catch {
+        Write-Host "微信 安装完成。" -ForegroundColor Green
+    } catch {
         Write-Host "微信安装失败: $_" -ForegroundColor Red
-        exit 1
+    } finally {
+        if(Test-Path $installer){
+            Remove-Item $installer -Force -ErrorAction SilentlyContinue
+        }
     }
 }
 
 # 检查 QQ 是否已安装
 function Test-QQInstalled {
-    # 1. 注册表检测（64位/32位路径）
     $regPaths = @(
         "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
         "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
     )
-    $qqReg = Get-ItemProperty -Path $regPaths -ErrorAction SilentlyContinue | 
+    $installed = Get-ItemProperty -Path $regPaths -ErrorAction SilentlyContinue | 
              Where-Object { $_.DisplayName -match "QQ" }
 
-    # 2. 默认安装目录检测
-    $installPaths = @(
-        "${env:ProgramFiles}\Tencent\QQ",
-        "${env:ProgramFiles}\Tencent\QQNT",
-        "${env:ProgramFiles(x86)}\Tencent\QQ",
-        "${env:ProgramFiles(x86)}\Tencent\QQNT"
-    )
-    $qqDir = $installPaths | Where-Object { Test-Path $_ }
+    if ($installed) { return $true }
 
-    return ($qqReg -ne $null) -or ($qqDir -ne $null)
+    return $false
 }
 
 # 静默安装 QQ
 function Install-QQSilently {
-    $tempDir = $env:TEMP
-    $installer = "$tempDir\QQInstaller.exe"
+    $installer = "$env:TEMP\QQInstaller.exe"
     $downloadUrl ="https://dldir1.qq.com/qqfile/qq/QQNT/Windows/QQ_9.9.18_250318_x64_01.exe"
 
+    if (Test-QQInstalled) {
+        Write-Host "检测到QQ已安装，跳过安装步骤。" -ForegroundColor Blue
+        return
+    }
+
+    Write-Host "检测到QQ未安装，开始执行静默安装..." -ForegroundColor Yellow
     try {
-        # 下载安装包
         Write-Host "正在下载 QQ 安装程序..." -ForegroundColor Cyan
         Invoke-WebRequest -Uri $downloadUrl -OutFile $installer -UseBasicParsing
 
-        # 静默安装（QQ 默认静默参数为 `/S`）
         Write-Host "正在静默安装..." -ForegroundColor Cyan
         Start-Process -FilePath $installer -ArgumentList "/S" -Wait -NoNewWindow
-
-        # 等待安装完成并清理
-        Start-Sleep -Seconds 5
-        Remove-Item $installer -Force -ErrorAction SilentlyContinue
-    }
-    catch {
+        Write-Host "QQ 安装完成。" -ForegroundColor Green
+    } catch {
         Write-Host "QQ安装失败: $_" -ForegroundColor Red
-        exit 1
+    } finally {
+        if(Test-Path $installer){
+            Remove-Item $installer -Force -ErrorAction SilentlyContinue
+        }
     }
 }
 
 # 检查 WPS Office 是否已安装
 function Test-OfficeInstalled {
-    # 1. 注册表检测（适配新旧版本）
     $regPaths = @(
         "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
-        "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
-        "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+        "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
     )
-    $wpsReg = Get-ItemProperty -Path $regPaths -ErrorAction SilentlyContinue | 
+    $installed = Get-ItemProperty -Path $regPaths -ErrorAction SilentlyContinue | 
              Where-Object { $_.DisplayName -match "Office" }
+    
+    if ($installed) { return $true }
 
-    # 2. 默认安装目录检测
-    $installPaths = @(
-        "${env:ProgramFiles}\WPS Office",
-        "${env:ProgramFiles(x86)}\WPS Office",
-        "${env:ProgramFiles(x86)}\Microsoft Office",
-        "${env:LOCALAPPDATA}\kingsoft\WPS Office"
-    )
-    $wpsDir = $installPaths | Where-Object { Test-Path $_ }
-
-    return ($wpsReg -ne $null) -or ($wpsDir -ne $null)
+    return $false
 }
 
 # 静默安装 WPS Office
 function Install-OfficeSilently {
-    $tempDir = $env:TEMP
-    $installerPath = Join-Path $tempDir "WPSOffice.exe"
+    $installer = "$env:TEMP\WPSOffice.exe"
     $downloadUrl = "https://official-package.wpscdn.cn/wps/download/WPS_Setup_20305.exe"
 
+    if (Test-OfficeInstalled) {
+        Write-Host "检测到 Office 已安装，跳过安装步骤。" -ForegroundColor Blue
+        return
+    }
+
+    Write-Host "检测到 Office 未安装，开始执行静默安装..." -ForegroundColor Yellow
     try {
-        # 下载安装包
         Write-Host "正在下载 WPS Office..." -ForegroundColor Cyan
-        Invoke-WebRequest -Uri $downloadUrl -OutFile $installerPath -UseBasicParsing
+        Invoke-WebRequest -Uri $downloadUrl -OutFile $installer -UseBasicParsing
 
-        # 静默安装参数（/S 或 /silent）
         Write-Host "正在静默安装 WPS Office..." -ForegroundColor Cyan
-        Start-Process -FilePath $installerPath -ArgumentList "/S -agreelicense" -Wait -NoNewWindow
-
-        # 等待安装完成（建议根据实际情况调整等待时间）
-        Start-Sleep -Seconds 5
-
-        # 清理临时文件
-        Remove-Item $installerPath -Force -ErrorAction SilentlyContinue
+        Start-Process -FilePath $installer -ArgumentList "/S -agreelicense" -Wait -NoNewWindow
+        Write-Host "Office 安装完成。" -ForegroundColor Green
     } catch {
         Write-Host "WPS Office安装失败: $_" -ForegroundColor Red
-        exit 1
+    } finally {
+        if(Test-Path $installer){
+            Remove-Item $installer -Force -ErrorAction SilentlyContinue
+        }
     }
 }
 
 # 检查 PDF 是否已安装
 function Test-PDFInstalled {
-    # 1. 注册表检测（适配新旧版本）
     $regPaths = @(
         "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
-        "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+        "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
     )
-    $pdfReg = Get-ItemProperty -Path $regPaths -ErrorAction SilentlyContinue | 
+    $installed = Get-ItemProperty -Path $regPaths -ErrorAction SilentlyContinue | 
              Where-Object { $_.DisplayName -match "PDF" }
 
-    # 2. 默认安装目录检测
-    $installPaths = @(
-        "${env:ProgramFiles}\SumatraPDF",
-        "${env:ProgramFiles(x86)}\SumatraPDF"
-    )
-    $pdfDir = $installPaths | Where-Object { Test-Path $_ }
+    if ($installed) { return $true }
 
-    return ($pdfReg -ne $null) -or ($pdfDir -ne $null)
+    return $false
 }
 
 # 静默安装 PDF
 function Install-PDFSilently {
-    $tempDir = $env:TEMP
-    $installerPath = Join-Path $tempDir "SumatraPDF.exe"
+    $installer = "$env:TEMP\SumatraPDF.exe"
     $downloadUrl = "https://www.sumatrapdfreader.org/dl/rel/3.5.2/SumatraPDF-3.5.2-64-install.exe"
 
+    if (Test-PDFInstalled) {
+        Write-Host "检测到PDF已安装，跳过安装步骤。" -ForegroundColor Blue
+        return
+    }
+
+    Write-Host "检测到PDF未安装，开始执行静默安装..." -ForegroundColor Yellow
     try {
-        # 下载安装包
         Write-Host "正在下载 SumatraPDF..." -ForegroundColor Cyan
-        Invoke-WebRequest -Uri $downloadUrl -OutFile $installerPath -UseBasicParsing
+        Invoke-WebRequest -Uri $downloadUrl -OutFile $installer -UseBasicParsing
 
-        # 静默安装参数（/S 或 /silent）
         Write-Host "正在静默安装 SumatraPDF..." -ForegroundColor Cyan
-        Start-Process -FilePath $installerPath -ArgumentList "-s -all-users" -Wait -NoNewWindow
-
-        # 等待安装完成（建议根据实际情况调整等待时间）
-        Start-Sleep -Seconds 5
-
-        # 清理临时文件
-        Remove-Item $installerPath -Force -ErrorAction SilentlyContinue
+        Start-Process -FilePath $installer -ArgumentList "-s -all-users -install" -Wait -NoNewWindow
+        Write-Host "PDF安装完成。" -ForegroundColor Green
     } catch {
         Write-Host "SumatraPDF安装失败: $_" -ForegroundColor Red
-        exit 1
+    } finally {
+        if(Test-Path $installer){
+            Remove-Item $installer -Force -ErrorAction SilentlyContinue
+        }
     }
 }
 
 # 检查 BandiView 是否已安装
 function Test-BandiViewInstalled {
-    # 1. 注册表检测（适配新旧版本）
     $regPaths = @(
         "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
-        "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+        "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
     )
-    $viewReg = Get-ItemProperty -Path $regPaths -ErrorAction SilentlyContinue | 
+    $installed = Get-ItemProperty -Path $regPaths -ErrorAction SilentlyContinue | 
              Where-Object { $_.DisplayName -match "BandiView" }
+    
+    if ($installed) { return $true }
 
-    # 2. 默认安装目录检测
-    $installPaths = @(
-        "${env:ProgramFiles}\\BandiView",
-        "${env:ProgramFiles(x86)}\\BandiView"
-    )
-    $viewDir = $installPaths | Where-Object { Test-Path $_ }
-
-    return ($viewReg -ne $null) -or ($viewDir -ne $null)
+    return $false
 }
 
 # 静默安装 BandiView
 function Install-BandiViewSilently {
-    $tempDir = $env:TEMP
-    $installerPath = Join-Path $tempDir "BandiView.exe"
+    $installer = "$env:TEMP\BandiView.exe"
     $downloadUrl = "https://bandisoft.okconnect.cn/bandiview/BANDIVIEW-SETUP-X64.EXE"
 
+    if (Test-BandiViewInstalled) {
+        Write-Host "检测到图片查看器已安装，跳过安装步骤。" -ForegroundColor Blue
+        return
+    }
+
+    Write-Host "检测到图片查看器未安装，开始执行静默安装..." -ForegroundColor Yellow
     try {
-        # 下载安装包
         Write-Host "正在下载 BandiView..." -ForegroundColor Cyan
-        Invoke-WebRequest -Uri $downloadUrl -OutFile $installerPath -UseBasicParsing
+        Invoke-WebRequest -Uri $downloadUrl -OutFile $installer -UseBasicParsing
 
-        # 静默安装参数（/S 或 /silent）
         Write-Host "正在静默安装 BandiView..." -ForegroundColor Cyan
-        Start-Process -FilePath $installerPath -ArgumentList "/S" -Wait -NoNewWindow
-
-        # 等待安装完成（建议根据实际情况调整等待时间）
-        Start-Sleep -Seconds 5
-
-        # 清理临时文件
-        Remove-Item $installerPath -Force -ErrorAction SilentlyContinue
+        Start-Process -FilePath $installer -ArgumentList "/S" -Wait -NoNewWindow
+        Write-Host "图片查看器安装完成。" -ForegroundColor Green
     } catch {
         Write-Host "BandiView 安装失败: $_" -ForegroundColor Red
-        exit 1
+    } finally {
+        if(Test-Path $installer){
+            Remove-Item $installer -Force -ErrorAction SilentlyContinue
+        }
     }
 }
 
 # 检查 腾讯会议 是否已安装
 function Test-MettingInstalled {
-    # 1. 注册表检测（适配新旧版本）
     $regPaths = @(
         "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
-        "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+        "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
     )
-    $mettingReg = Get-ItemProperty -Path $regPaths -ErrorAction SilentlyContinue | 
+    $installed = Get-ItemProperty -Path $regPaths -ErrorAction SilentlyContinue | 
              Where-Object { $_.DisplayName -match "腾讯会议" }
 
-    # 2. 默认安装目录检测
-    $installPaths = @(
-        "${env:ProgramFiles}\\WeMeet",
-        "${env:ProgramFiles(x86)}\\WeMeet"
-    )
-    $mettingDir = $installPaths | Where-Object { Test-Path $_ }
+    if ($installed) { return $true }
 
-    return ($mettingReg -ne $null) -or ($mettingDir -ne $null)
+    return $false
 }
 
 # 静默安装腾讯会议
 function Install-MettingSilently {
-    $tempDir = $env:TEMP
-    $installerPath = Join-Path $tempDir "TencentMeeting.exe"
-    $downloadUrl = ""
+    $installer = "$env:TEMP\TencentMeeting.exe"
+    $downloadUrl = "https://updatecdn.meeting.qq.com/cos/2a15c280af093abad029dc0383d2f184/TencentMeeting_0300000000_3.32.2.413_x86_64.publish.officialwebsite.exe"
 
+    if (Test-MettingInstalled) {
+        Write-Host "检测到腾讯会议已安装，跳过安装步骤。" -ForegroundColor Blue
+        return
+    }
+
+    Write-Host "检测到腾讯会议未安装，开始执行静默安装..." -ForegroundColor Yellow
     try {
-        # 下载安装包
         Write-Host "正在下载腾讯会议..." -ForegroundColor Cyan
-        Invoke-WebRequest -Uri $downloadUrl -OutFile $installerPath -UseBasicParsing
+        Invoke-WebRequest -Uri $downloadUrl -OutFile $installer -UseBasicParsing
 
-        # 静默安装参数（/SilentInstall=0）
         Write-Host "正在静默安装腾讯会议..." -ForegroundColor Cyan
         Start-Process -FilePath $installerPath -ArgumentList "/SilentInstall=0" -Wait -NoNewWindow
 
-        # 等待安装完成（建议根据实际情况调整等待时间）
-        Start-Sleep -Seconds 5
-
-        # 清理临时文件
-        Remove-Item $installerPath -Force -ErrorAction SilentlyContinue
     } catch {
         Write-Host "腾讯会议安装失败: $_" -ForegroundColor Red
-        exit 1
+    } finally {
+        if(Test-Path $installer){
+            Remove-Item $installer -Force -ErrorAction SilentlyContinue
+        }
     }
 }
 
-# 1. 检查微信安装
-if (-not (Test-WeChatInstalled)) {
-    Write-Host "检测到微信未安装，开始执行静默安装..." -ForegroundColor Yellow
-    Install-WeChatSilently
-    Write-Host "微信安装完成！" -ForegroundColor Green
-}
-else {
-    Write-Host "检测到微信已安装，跳过安装步骤。" -ForegroundColor Blue
+function Test-7ZipInstalled {
+    $regPaths = @(
+        "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
+    )
+    $installed = Get-ItemProperty -Path $regPaths -ErrorAction SilentlyContinue | 
+             Where-Object { $_.DisplayName -match "7-Zip" }
+
+    if ($installed) { return $true }
+
+    return $false
 }
 
-# 2. 检查QQ安装
-if (-not (Test-QQInstalled)) {
-    Write-Host "检测到QQ未安装，开始执行静默安装..." -ForegroundColor Yellow
-    Install-QQSilently
-    Write-Host "QQ安装完成！" -ForegroundColor Green
-}
-else {
-    Write-Host "检测到QQ已安装，跳过安装步骤。" -ForegroundColor Blue
+# 安装 7-Zip
+function Install-7Zip {
+    $installer = "$env:TEMP\7Zip.exe"
+    $downloadUrl = "https://www.7-zip.org/a/7z2409-x64.exe"
+
+    if (Test-7ZipInstalled) {
+        Write-Host "检测到7-Zip解压缩工具已安装，跳过安装步骤。" -ForegroundColor Blue
+        return
+    }
+
+    Write-Host "检测到7-Zip解压缩工具未安装，开始执行静默安装..." -ForegroundColor Yellow
+    try {
+        Write-Host "正在下载7-Zip解压缩工具..." -ForegroundColor Cyan
+        Invoke-WebRequest -Uri $downloadUrl -OutFile $installer -UseBasicParsing
+
+        Write-Host "正在静默安装7-Zip解压缩工具..." -ForegroundColor Cyan
+        Start-Process -FilePath $installerPath -ArgumentList "/S" -Wait -NoNewWindow
+
+    } catch {
+        Write-Host "7-Zip解压缩工具安装失败: $_" -ForegroundColor Red
+    } finally {
+        if(Test-Path $installer){
+            Remove-Item $installer -Force -ErrorAction SilentlyContinue
+        }
+    }
 }
 
-# 3. 检查WPS安装
-if (-not (Test-OfficeInstalled)) {
-    Write-Host "检测到 Office 未安装，开始执行静默安装..." -ForegroundColor Yellow
-    Install-OfficeSilently
-    Write-Host "Office 安装完成！" -ForegroundColor Green
-}
-else {
-    Write-Host "检测到 Office 已安装，跳过安装步骤。" -ForegroundColor Blue
+function Test-aDriveInstalled {
+    $regPaths = @(
+        "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
+    )
+    $installed = Get-ItemProperty -Path $regPaths -ErrorAction SilentlyContinue | 
+             Where-Object { $_.DisplayName -match "阿里云盘" }
+
+    if ($installed) { return $true }
+
+    return $false
 }
 
-# 4. 检查SumatraPDF安装
-if (-not (Test-PDFInstalled)) {
-    Write-Host "检测到PDF未安装，开始执行静默安装..." -ForegroundColor Yellow
-    Install-PDFSilently
-    Write-Host "PDF安装完成！" -ForegroundColor Green
-}
-else {
-    Write-Host "检测到PDF已安装，跳过安装步骤。" -ForegroundColor Blue
+# 安装 阿里云盘
+function Install-aDrive{
+    $installer = "$env:TEMP\aDrive.exe"
+    $downloadUrl = "https://cdn.aliyundrive.net/downloads/apps/desktop/aDrive-6.8.6.exe"
+
+    if (Test-MettingInstalled) {
+        Write-Host "检测到阿里云盘已安装，跳过安装步骤。" -ForegroundColor Blue
+        return
+    }
+
+    Write-Host "检测到阿里云盘未安装，开始执行静默安装..." -ForegroundColor Yellow
+    try {
+        Write-Host "正在下载阿里云盘..." -ForegroundColor Cyan
+        Invoke-WebRequest -Uri $downloadUrl -OutFile $installer -UseBasicParsing
+
+        Write-Host "正在静默安装阿里云盘..." -ForegroundColor Cyan
+        Start-Process -FilePath $installerPath -ArgumentList "/S" -Wait -NoNewWindow
+
+    } catch {
+        Write-Host "阿里云盘安装失败: $_" -ForegroundColor Red
+    } finally {
+        if(Test-Path $installer){
+            Remove-Item $installer -Force -ErrorAction SilentlyContinue
+        }
+    }
 }
 
-# 5. 检查图片查看器安装
-if (-not (Test-BandiViewInstalled)) {
-    Write-Host "检测到图片查看器未安装，开始执行静默安装..." -ForegroundColor Yellow
-    Install-BandiViewSilently
-    Write-Host "图片查看器安装完成！" -ForegroundColor Green
-}
-else {
-    Write-Host "检测到图片查看器已安装，跳过安装步骤。" -ForegroundColor Blue
-}
+Install-WeChatSilently
+Install-QQSilently
+Install-OfficeSilently
+Install-PDFSilently
+Install-BandiViewSilently
+Install-7Zip
+Install-aDrive
 
 # 等待退出
-Read-Host -Prompt "按 Enter 键继续..."
+Read-Host -Prompt "已完成，按任意键退出..."
