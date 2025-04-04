@@ -44,7 +44,7 @@ function Install-WeChatSilently {
 
         Write-Host "正在静默安装微信..." -ForegroundColor Cyan
         Start-Process -FilePath $installer -ArgumentList "/S" -Wait -NoNewWindow
-        Write-Host "微信 安装完成。" -ForegroundColor Green
+        Write-Host "微信安装完成。" -ForegroundColor Green
     } catch {
         Write-Host "微信安装失败: $_" -ForegroundColor Red
     } finally {
@@ -74,20 +74,20 @@ function Install-QQSilently {
     $downloadUrl ="https://dldir1.qq.com/qqfile/qq/QQNT/Windows/QQ_9.9.18_250318_x64_01.exe"
 
     if (Test-QQInstalled) {
-        Write-Host "检测到QQ已安装，跳过安装步骤。" -ForegroundColor Blue
+        Write-Host "检测到 QQ 已安装，跳过安装步骤。" -ForegroundColor Blue
         return
     }
 
-    Write-Host "检测到QQ未安装，开始执行静默安装..." -ForegroundColor Yellow
+    Write-Host "检测到 QQ 未安装，开始执行静默安装..." -ForegroundColor Yellow
     try {
         Write-Host "正在下载 QQ 安装程序..." -ForegroundColor Cyan
         Invoke-WebRequest -Uri $downloadUrl -OutFile $installer -UseBasicParsing
 
-        Write-Host "正在静默安装..." -ForegroundColor Cyan
+        Write-Host "正在静默安装 QQ..." -ForegroundColor Cyan
         Start-Process -FilePath $installer -ArgumentList "/S" -Wait -NoNewWindow
         Write-Host "QQ 安装完成。" -ForegroundColor Green
     } catch {
-        Write-Host "QQ安装失败: $_" -ForegroundColor Red
+        Write-Host "QQ 安装失败: $_" -ForegroundColor Red
     } finally {
         if(Test-Path $installer){
             Remove-Item $installer -Force -ErrorAction SilentlyContinue
@@ -127,9 +127,9 @@ function Install-OfficeSilently {
 
         Write-Host "正在静默安装 WPS Office..." -ForegroundColor Cyan
         Start-Process -FilePath $installer -ArgumentList "/S -agreelicense" -Wait -NoNewWindow
-        Write-Host "Office 安装完成。" -ForegroundColor Green
+        Write-Host "WPS Office 安装完成。" -ForegroundColor Green
     } catch {
-        Write-Host "WPS Office安装失败: $_" -ForegroundColor Red
+        Write-Host "WPS Office 安装失败: $_" -ForegroundColor Red
     } finally {
         if(Test-Path $installer){
             Remove-Item $installer -Force -ErrorAction SilentlyContinue
@@ -158,20 +158,20 @@ function Install-PDFSilently {
     $downloadUrl = "https://www.sumatrapdfreader.org/dl/rel/3.5.2/SumatraPDF-3.5.2-64-install.exe"
 
     if (Test-PDFInstalled) {
-        Write-Host "检测到PDF已安装，跳过安装步骤。" -ForegroundColor Blue
+        Write-Host "检测到 PDF 已安装，跳过安装步骤。" -ForegroundColor Blue
         return
     }
 
-    Write-Host "检测到PDF未安装，开始执行静默安装..." -ForegroundColor Yellow
+    Write-Host "检测到 PDF 未安装，开始执行静默安装..." -ForegroundColor Yellow
     try {
         Write-Host "正在下载 SumatraPDF..." -ForegroundColor Cyan
         Invoke-WebRequest -Uri $downloadUrl -OutFile $installer -UseBasicParsing
 
         Write-Host "正在静默安装 SumatraPDF..." -ForegroundColor Cyan
         Start-Process -FilePath $installer -ArgumentList "-s -all-users -install" -Wait -NoNewWindow
-        Write-Host "PDF安装完成。" -ForegroundColor Green
+        Write-Host "SumatraPDF 安装完成。" -ForegroundColor Green
     } catch {
-        Write-Host "SumatraPDF安装失败: $_" -ForegroundColor Red
+        Write-Host "SumatraPDF 安装失败: $_" -ForegroundColor Red
     } finally {
         if(Test-Path $installer){
             Remove-Item $installer -Force -ErrorAction SilentlyContinue
@@ -211,7 +211,7 @@ function Install-BandiViewSilently {
 
         Write-Host "正在静默安装 BandiView..." -ForegroundColor Cyan
         Start-Process -FilePath $installer -ArgumentList "/S" -Wait -NoNewWindow
-        Write-Host "图片查看器安装完成。" -ForegroundColor Green
+        Write-Host "BandiView 安装完成。" -ForegroundColor Green
     } catch {
         Write-Host "BandiView 安装失败: $_" -ForegroundColor Red
     } finally {
@@ -252,7 +252,7 @@ function Install-MettingSilently {
         Invoke-WebRequest -Uri $downloadUrl -OutFile $installer -UseBasicParsing
 
         Write-Host "正在静默安装腾讯会议..." -ForegroundColor Cyan
-        Start-Process -FilePath $installerPath -ArgumentList "/SilentInstall=0" -Wait -NoNewWindow
+        Start-Process -FilePath $installer -ArgumentList "/SilentInstall=0" -Wait -NoNewWindow
 
     } catch {
         Write-Host "腾讯会议安装失败: $_" -ForegroundColor Red
@@ -278,7 +278,7 @@ function Test-7ZipInstalled {
 }
 
 # 安装 7-Zip
-function Install-7Zip {
+function Install-7ZipSilently {
     $installer = "$env:TEMP\7Zip.exe"
     $downloadUrl = "https://www.7-zip.org/a/7z2409-x64.exe"
 
@@ -293,7 +293,7 @@ function Install-7Zip {
         Invoke-WebRequest -Uri $downloadUrl -OutFile $installer -UseBasicParsing
 
         Write-Host "正在静默安装7-Zip解压缩工具..." -ForegroundColor Cyan
-        Start-Process -FilePath $installerPath -ArgumentList "/S" -Wait -NoNewWindow
+        Start-Process -FilePath $installer -ArgumentList "/S" -Wait -NoNewWindow
 
     } catch {
         Write-Host "7-Zip解压缩工具安装失败: $_" -ForegroundColor Red
@@ -319,7 +319,7 @@ function Test-aDriveInstalled {
 }
 
 # 安装 阿里云盘
-function Install-aDrive{
+function Install-aDriveSilently{
     $installer = "$env:TEMP\aDrive.exe"
     $downloadUrl = "https://cdn.aliyundrive.net/downloads/apps/desktop/aDrive-6.8.6.exe"
 
@@ -334,7 +334,7 @@ function Install-aDrive{
         Invoke-WebRequest -Uri $downloadUrl -OutFile $installer -UseBasicParsing
 
         Write-Host "正在静默安装阿里云盘..." -ForegroundColor Cyan
-        Start-Process -FilePath $installerPath -ArgumentList "/S" -Wait -NoNewWindow
+        Start-Process -FilePath $installer -ArgumentList "/S" -Wait -NoNewWindow
 
     } catch {
         Write-Host "阿里云盘安装失败: $_" -ForegroundColor Red
@@ -350,8 +350,8 @@ Install-QQSilently
 Install-OfficeSilently
 Install-PDFSilently
 Install-BandiViewSilently
-Install-7Zip
-Install-aDrive
+Install-7ZipSilently
+Install-aDriveSilently
 
 # 等待退出
 Read-Host -Prompt "已完成，按任意键退出..."
